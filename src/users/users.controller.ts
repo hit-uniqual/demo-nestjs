@@ -6,9 +6,11 @@ import {
   Param,
   UseGuards,
   Query,
+  Req,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import * as swagger from '@nestjs/swagger';
 import { User } from './entities/user.entity';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
@@ -67,5 +69,28 @@ export class UsersController {
   @Get()
   async showAll(@Query('page') page: number) {
     return this.usersService.showAll(page);
+  }
+
+  @swagger.ApiTags('User')
+  @swagger.ApiBearerAuth('BearerAuth')
+  @swagger.ApiBody({
+    type: ChangePasswordDto,
+    examples: {
+      changePassword: {
+        value: {
+          oldPassword: 'Abc@123',
+          password: 'Abc@321',
+          confirmedPassword: 'Abc@321',
+        } as ChangePasswordDto,
+      },
+    },
+  })
+  @UseGuards(JwtAuthGuard)
+  @Post('change-password')
+  async changePassword(
+    @Body() changePasswordDto: ChangePasswordDto,
+    @Req() req,
+  ) {
+    return this.usersService.changePassword(changePasswordDto, req);
   }
 }
