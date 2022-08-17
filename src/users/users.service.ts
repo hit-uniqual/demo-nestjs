@@ -3,6 +3,7 @@ import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import * as bcrypt from 'bcryptjs';
+import { unlinkSync } from 'fs';
 
 @Injectable()
 export class UsersService {
@@ -91,5 +92,29 @@ export class UsersService {
       success: true,
       message: 'Password has been changed successfully',
     };
+  }
+
+  async updateProfilePic(file, req) {
+    if (file.mimetype === ('image/png' || 'image/jpg')) {
+      if (req.user.profilePic) {
+        unlinkSync(req.user.profilePic)
+      }
+
+      const user = User.findOne({
+        where: {
+          id: req.user.id,
+        },
+      });
+      if (!user) {
+        throw new ConflictException('Invalid user');
+      }
+      (await user).profilePic = await file.path;
+
+      return {
+        status: true,
+        message: 'Profile picture successfully updated'
+      }
+    }
+    throw new Error('Profile picture must be in png/jpg format')
   }
 }
